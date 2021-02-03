@@ -14,6 +14,14 @@ function showStationID() {
     basic.showString(ids[StationID], 200)
 }
 
+function showNetID() {
+    
+    basic.showNumber(NetID)
+    basic.clearScreen()
+    basic.showNumber(NetID)
+    basic.clearScreen()
+}
+
 function emptyKeyBuffer() {
     while (input.buttonIsPressed(Button.A) || input.buttonIsPressed(Button.B) || input.buttonIsPressed(Button.AB)) {
         
@@ -56,11 +64,18 @@ radio.onReceivedString(function on_received_string(receivedString: string) {
     let rs = receivedString.slice(0, 3)
     let nid = receivedString.slice(4)
     // netID of ascendant station
-    if (rs == "INIT" && anscestorID == 0) {
+    if (rs == "INIT" && anscestorID == 0 && StationID > 0) {
         ascestorID = radio.receivedPacket(RadioPacketProperty.SerialNumber)
         NetID = parseInt(nid) + 1
+        showNetID()
     }
     
+    // now retransmit the INIT signal with our own NetID so that
+    // downstream uninit'd stations can get a new NetID
+    basic.pause(20 + randint(0, 10))
+    // at most wait 30 ms before retransmit
+    let newstr = "INIT" + ("" + NetID)
+    radio.sendString(newstr)
 })
 // ################# MAIN LOOP ########################
 showStationID()

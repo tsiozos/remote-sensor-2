@@ -12,6 +12,13 @@ def showStationID():
     ids = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     basic.show_string(ids[StationID],200)
 
+def showNetID():
+    global NetID
+    basic.show_number(NetID)
+    basic.clear_screen()
+    basic.show_number(NetID)
+    basic.clear_screen()
+
 def emptyKeyBuffer():
     while input.button_is_pressed(Button.A) or input.button_is_pressed(Button.B) or input.button_is_pressed(Button.AB):
         pass
@@ -43,12 +50,18 @@ def NetworkInit():
 
 # accept commands and dispatch
 def on_received_string(receivedString):
-    global anscestorID, NetID
+    global anscestorID, NetID, StationID
     rs = receivedString[0:3]
     nid = receivedString[4:]    #netID of ascendant station
-    if rs == "INIT" and anscestorID == 0:
+    if rs == "INIT" and anscestorID == 0 and StationID > 0:
         ascestorID = radio.received_packet(RadioPacketProperty.SERIAL_NUMBER)
         NetID = int(nid) + 1
+        showNetID()
+    #now retransmit the INIT signal with our own NetID so that
+    #downstream uninit'd stations can get a new NetID
+    basic.pause(20+randint(0, 10))  #at most wait 30 ms before retransmit
+    newstr = "INIT"+str(NetID)
+    radio.send_string(newstr)
 
 radio.on_received_string(on_received_string)
 
