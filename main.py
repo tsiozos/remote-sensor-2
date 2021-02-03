@@ -1,5 +1,7 @@
-StationID = 0
-NetworkLeaderID = 0     #on first INIT get the serial number of the network leader
+StationID = 0   # the name of the server is a number 0-35. >10 are ABCDEF...Z
+NetID = 0    #net ID is a number assigned to this station during INIT phase.
+anscestorID = 0     #on first INIT get the serial number of the anscestor station.
+MyNetworkAddress = 0
 radio.set_group(7)
 radio.set_transmit_power(7)
 radio.set_transmit_serial_number(True)
@@ -39,8 +41,16 @@ def NetworkInit():
         pass
 
 
+# accept commands and dispatch
+def on_received_string(receivedString):
+    global anscestorID, NetID
+    rs = receivedString[0:3]
+    nid = receivedString[4:]    #netID of ascendant station
+    if rs == "INIT" and anscestorID == 0:
+        ascestorID = radio.received_packet(RadioPacketProperty.SERIAL_NUMBER)
+        NetID = int(nid) + 1
 
-
+radio.on_received_string(on_received_string)
 
 ################## MAIN LOOP ########################
 showStationID()

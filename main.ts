@@ -1,6 +1,10 @@
 let StationID = 0
-let NetworkLeaderID = 0
-// on first INIT get the serial number of the network leader
+//  the name of the server is a number 0-35. >10 are ABCDEF...Z
+let NetID = 0
+// net ID is a number assigned to this station during INIT phase.
+let anscestorID = 0
+// on first INIT get the serial number of the anscestor station.
+let MyNetworkAddress = 0
 radio.setGroup(7)
 radio.setTransmitPower(7)
 radio.setTransmitSerialNumber(true)
@@ -45,6 +49,19 @@ function NetworkInit() {
     
 }
 
+//  accept commands and dispatch
+radio.onReceivedString(function on_received_string(receivedString: string) {
+    let ascestorID: number;
+    
+    let rs = receivedString.slice(0, 3)
+    let nid = receivedString.slice(4)
+    // netID of ascendant station
+    if (rs == "INIT" && anscestorID == 0) {
+        ascestorID = radio.receivedPacket(RadioPacketProperty.SerialNumber)
+        NetID = parseInt(nid) + 1
+    }
+    
+})
 // ################# MAIN LOOP ########################
 showStationID()
 basic.clearScreen()
